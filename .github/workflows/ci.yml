@@ -41,7 +41,7 @@ jobs:
         with:
           # Cache deps, build, and package mgr dirs
           path: |
-            README.md
+            .yamllint
           # deps
           # _build
           # .hex
@@ -72,7 +72,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           docker container create --name cache ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }}
-          docker container cp cache:/opt/app/README.md .
+          docker container cp cache:/opt/app/.yamllint .
           # docker container cp cache:/opt/app/_build .
           # docker container cp cache:/opt/app/.mix .
           # docker container cp cache:/opt/app/.hex .
