@@ -1,0 +1,11 @@
+---
+services:
+  dev:
+    volumes:
+      - ..:/workspace:cached
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile

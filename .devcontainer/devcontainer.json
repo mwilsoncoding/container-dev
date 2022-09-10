@@ -1,0 +1,29 @@
+{
+  "name": "Dev",
+  //"build":{
+  //  "dockerfile": "Dockerfile",
+  //  "context": ".."
+  //},
+
+  "dockerComposeFile": "docker-compose.yaml",
+  "service": "dev",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+
+  "forwardPorts": [],
+
+  "postCreateCommand": "",
+
+  "remoteUser": "dev",
+
+  "extensions": [
+	"editorconfig.editorconfig",
+	"github.vscode-pull-request-github",
+	"redhat.vscode-yaml",
+	"ms-azuretools.vscode-docker"
+  ]
+}

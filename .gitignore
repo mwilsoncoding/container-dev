@@ -1,0 +1,20 @@
+# # Ignore the usuals for your language, including
+# # any build or dependency directories, generated docs,
+# # crash logs, compiled executables, and local secrets
+# /_build
+# /deps
+# /doc
+# /cover
+# /.fetch
+# erl_crash.dump
+# *.ez
+# *.beam
+# /config/*.secret.exs
+#
+# # Ignore anything VSCode populates for plugins
+# .elixir_ls/
+#
+# # Ignore  or package manager cache directories
+# /.mix
+# /.hex
+# /.cache

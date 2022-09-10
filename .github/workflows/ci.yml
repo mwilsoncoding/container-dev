@@ -1,0 +1,102 @@
+---
+name: CI
+on:
+  pull_request:
+    branches: [main]
+env:
+  BASE_IMG_REGISTRY: docker.io
+  BASE_IMG_REGISTRY_PATH: library
+  # Google Artifact Registry Example:
+  # BASE_IMG_REGISTRY: us-docker.pkg.dev
+  # BASE_IMG_REGISTRY_PATH: $PROJECT_ID/$PATH
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build-env:
+          - dev
+          #          - test
+          #          - prod
+        base-img:
+          - alpine
+        base-img-vsn:
+          #          - 3.15.6
+          - 3.16.2
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        id: buildx
+        with:
+          install: true
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          # Cache deps, build, and package mgr dirs
+          path: |
+            .yamllint
+          # deps
+          # _build
+          # .hex
+          # .mix
+          # .cache
+
+          # Cache based on OS, BUILD_ENV, LANG, LANG_VSN, and hashFiles('**/lang.lock')
+          # The default branch should cache the same without the hash for a restore
+          # from latest merge to the default branch
+          key: |
+            ${{ runner.os }}-${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ hashFiles('**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}
+      - name: Build and Push the Docker image
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }}
+          context: .
+          target: builder
+          build-args: |
+            REGISTRY=${{ env.BASE_IMG_REGISTRY }}
+            REGISTRY_PATH=${{ env.BASE_IMG_REGISTRY_PATH }}
+            BASE_IMAGE=${{ matrix.base-img }}
+            BASE_IMAGE_TAG=${{ matrix.base-img-vsn }}
+      - name: Copy Docker Contents to Host
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          docker container create --name cache ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }}
+          docker container cp cache:/opt/app/.yamllint .
+          # docker container cp cache:/opt/app/_build .
+          # docker container cp cache:/opt/app/.mix .
+          # docker container cp cache:/opt/app/.hex .
+          # docker container cp cache:/opt/app/.cache .
+  check-formatted:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        build-env:
+          - dev
+          #          - test
+          #          - prod
+        base-img:
+          - alpine
+        base-img-vsn:
+          #          - 3.15.6
+          - 3.16.2
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |-
+          docker container run ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }} yamllint . --strict --format github
