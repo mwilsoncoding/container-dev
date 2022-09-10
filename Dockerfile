@@ -37,8 +37,8 @@ ARG APP_DIR
 # # caching if they exist in the root of the repository.
 COPY . $APP_DIR
 # 
-# # Install OS build/test dependencies
-# RUN apk add --no-cache yamllint
+# Install OS build/test dependencies
+RUN apk add --no-cache yamllint
 # 
 WORKDIR $APP_DIR
 # 
