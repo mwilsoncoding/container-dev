@@ -19,6 +19,16 @@ RUN apk add --no-cache bash git sudo
 RUN apk add --no-cache py3-pip yamllint
 RUN pip install yamlfix
 
+# Set environment variables for any paths that language-specific
+# tooling may need for interacting with the host filesystem
+#
+#   ENV MIX_HOME $WORKSPACE/.mix
+#   ENV HEX_HOME $WORKSPACE/.hex
+#   ENV REBAR_CACHE_DIR $WORKSPACE/.cache
+# 
+# Set an ENV to persist the app build env as development mode
+#   ENV MIX_ENV dev
+
 # This Dockerfile adds a non-root user with sudo access. Use the "remoteUser"
 # property in devcontainer.json to use it. On Linux, the container user's GID/UIDs
 # will be updated to match your local UID/GID (when using the dockerFile property).
@@ -34,20 +44,3 @@ RUN addgroup -g $USER_GID $USERNAME \
 
 USER $USERNAME
 ENV HOME /home/$USERNAME
-
-# Set environment variables for any paths that language-specific
-# tooling may need for interacting with the host filesystem
-#
-#   ENV MIX_HOME $WORKSPACE/.mix
-#   ENV HEX_HOME $WORKSPACE/.hex
-#   ENV REBAR_CACHE_DIR $WORKSPACE/.cache
-# 
-# Set an ENV to persist the app build env as development mode
-#   ENV MIX_ENV dev
-#
-# Install local package manager caches if missing (see above note re: COPY . $APP_DIR)
-# Get dependencies for the currently configured environment
-#
-#   RUN mix do local.hex --force --if-missing, \
-#       local.rebar --force --if-missing, \
-#       deps.get --only $MIX_ENV
