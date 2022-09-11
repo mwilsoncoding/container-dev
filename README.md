@@ -19,6 +19,8 @@ Modification of a number of these template files is dependent on language choice
 
 #### Elixir
 
+Check out [the Elixir template](https://github.com/mwilsoncoding/container-dev-elixir)
+
 ```console
 MY_NEW_REPO=container-dev-elixir
 MY_NEW_REPO_ACCESS_LEVEL=--public
