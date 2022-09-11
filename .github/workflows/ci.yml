@@ -4,11 +4,11 @@ on:
   pull_request:
     branches: [main]
 env:
-  BASE_IMG_REGISTRY: docker.io
-  BASE_IMG_REGISTRY_PATH: library
+  BUILDER_BASE_IMAGE_REGISTRY: docker.io
+  BUILDER_BASE_IMAGE_REGISTRY_PATH: library
   # Google Artifact Registry Example:
-  # BASE_IMG_REGISTRY: us-docker.pkg.dev
-  # BASE_IMG_REGISTRY_PATH: $PROJECT_ID/$PATH
+  # BASE_IMAGE_REGISTRY: us-docker.pkg.dev
+  # BASE_IMAGE_REGISTRY_PATH: $PROJECT_ID/$PATH
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,9 +18,9 @@ jobs:
           - dev
           #          - test
           #          - prod
-        base-img:
+        builder-base-image:
           - alpine
-        base-img-vsn:
+        builder-base-image-vsn:
           #          - 3.15.6
           - 3.16.2
     steps:
@@ -52,26 +52,27 @@ jobs:
           # The default branch should cache the same without the hash for a restore
           # from latest merge to the default branch
           key: |
-            ${{ runner.os }}-${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ hashFiles('**/Dockerfile') }}
+            ${{ runner.os }}-${{ matrix.build-env }}-${{ matrix.builder-base-image }}-${{ matrix.builder-base-image-vsn }}-${{ hashFiles('**/Dockerfile') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}
+            ${{ runner.os }}-${{ matrix.build-env }}-${{ matrix.builder-base-image }}-${{ matrix.builder-base-image-vsn }}
       - name: Build and Push the Docker image
         uses: docker/build-push-action@v3
         with:
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }}
+            ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.builder-base-image }}-${{ matrix.builder-base-image-vsn }}-${{ github.sha }}
           context: .
           target: builder
           build-args: |
-            REGISTRY=${{ env.BASE_IMG_REGISTRY }}
-            REGISTRY_PATH=${{ env.BASE_IMG_REGISTRY_PATH }}
-            BASE_IMAGE=${{ matrix.base-img }}
-            BASE_IMAGE_TAG=${{ matrix.base-img-vsn }}
+            BUILDER_REGISTRY=${{ env.BUILDER_BASE_IMAGE_REGISTRY }}
+            BUILDER_REGISTRY_PATH=${{ env.BUILDER_BASE_IMAGE_REGISTRY_PATH }}
+            BUILDER_BASE_IMAGE=${{ matrix.builder-base-image }}
+            BUILDER_BASE_IMAGE_TAG=${{ matrix.builder-base-image-vsn }}
+            BUILD_ENV=${{ matrix.build-env }}
       - name: Copy Docker Contents to Host
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          docker container create --name cache ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }}
+          docker container create --name cache ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.builder-base-image }}-${{ matrix.builder-base-image-vsn }}-${{ github.sha }}
           docker container cp cache:/opt/app/.yamllint .
           # docker container cp cache:/opt/app/_build .
           # docker container cp cache:/opt/app/.mix .
@@ -86,9 +87,9 @@ jobs:
           - dev
           #          - test
           #          - prod
-        base-img:
+        builder-base-image:
           - alpine
-        base-img-vsn:
+        builder-base-image-vsn:
           #          - 3.15.6
           - 3.16.2
     steps:
@@ -99,4 +100,4 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: |-
-          docker container run ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }} yamllint . --strict --format github
+          docker container run ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.builder-base-image }}-${{ matrix.builder-base-image-vsn }}-${{ github.sha }} yamllint . --strict --format github

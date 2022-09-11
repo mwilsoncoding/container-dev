@@ -4,8 +4,10 @@ on:
   push:
     branches: [main]
 env:
-  BASE_IMG_REGISTRY: docker.io
-  BASE_IMG_REGISTRY_PATH: library
+  BUILDER_BASE_IMAGE_REGISTRY: docker.io
+  BUILDER_BASE_IMAGE_REGISTRY_PATH: library
+  RUNNER_BASE_IMAGE_REGISTRY: ${{ env.BUILDER_BASE_IMAGE_REGISTRY }}
+  RUNNER_BASE_IMAGE_REGISTRY_PATH: ${{ env.BUILDER_BASE_IMAGE_REGISTRY_PATH }}
 jobs:
   build-cache:
     runs-on: ubuntu-latest
@@ -15,9 +17,9 @@ jobs:
           - dev
           #          - test
           #          - prod
-        base-img:
+        builder-base-image:
           - alpine
-        base-img-vsn:
+        builder-base-image-vsn:
           #          - 3.15.6
           - 3.16.2
     steps:
@@ -49,19 +51,19 @@ jobs:
           # Cache based on OS, BUILD_ENV, LANG, LANG_VSN, and hashFiles('**/lang.lock')
           # The default branch should cache the same without the hash for a restore
           # from latest merge to the default branch
-          key: ${{ runner.os }}-${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}
+          key: ${{ runner.os }}-${{ matrix.build-env }}-${{ matrix.builder-base-image }}-${{ matrix.builder-base-image-vsn }}
       - name: Update Cache
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           docker build . \
-            --tag ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }} \
+            --tag ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.builder-base-image }}-${{ matrix.builder-base-image-vsn }}-${{ github.sha }} \
             --target builder \
-            --build-arg MIX_ENV=${{ matrix.mix-env }} \
-            --build-arg REGISTRY=${{ env.BASE_IMG_REGISTRY }} \
-            --build-arg REGISTRY_PATH=${{ env.BASE_IMG_REGISTRY_PATH }} \
-            --build-arg BASE_IMAGE=${{ matrix.base-img }} \
-            --build-arg BASE_IMAGE_TAG=${{ matrix.base-img-vsn }}
-          docker container create --name cache ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.base-img }}-${{ matrix.base-img-vsn }}-${{ github.sha }}
+            --build-arg BUILD_ENV=${{ matrix.build-env }} \
+            --build-arg BUILDER_REGISTRY=${{ env.BUILDER_BASE_IMAGE_REGISTRY }} \
+            --build-arg BUILDER_REGISTRY_PATH=${{ env.BUILDER_BASE_IMAGE_REGISTRY_PATH }} \
+            --build-arg BUILDER_BASE_IMAGE=${{ matrix.builder-base-image }} \
+            --build-arg BUILDER_BASE_IMAGE_TAG=${{ matrix.builder-base-image-vsn }}
+          docker container create --name cache ghcr.io/${{ github.repository }}/container-dev-builder:${{ matrix.build-env }}-${{ matrix.builder-base-image }}-${{ matrix.builder-base-image-vsn }}-${{ github.sha }}
           docker container cp cache:/opt/app/.yamllint .
           # docker container cp cache:/opt/app/deps .
           # docker container cp cache:/opt/app/_build .
@@ -72,13 +74,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        build-env:
-          - dev
+        deploy-env:
+          - prod
+          #          - dev
           #          - test
-          #          - prod
-        base-img:
+        builder-base-image:
           - alpine
-        base-img-vsn:
+        runner-base-image:
+          - alpine
+        builder-base-image-vsn:
+          #          - 3.15.6
+          - 3.16.2
+        runner-base-image-vsn:
           #          - 3.15.6
           - 3.16.2
     steps:
@@ -101,7 +108,13 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/container-dev:${{ github.sha }}
           context: .
           build-args: |-
-            REGISTRY=${{ env.BASE_IMG_REGISTRY }}
-            REGISTRY_PATH=${{ env.BASE_IMG_REGISTRY_PATH }}
-            BASE_IMAGE=${{ matrix.base-img }}
-            BASE_IMAGE_TAG=${{ matrix.base-img-vsn }}
+            BUILD_ENV=${{ matrix.deploy-env }}
+            BUILDER_REGISTRY=${{ env.BUILDER_BASE_IMAGE_REGISTRY }}
+            BUILDER_REGISTRY_PATH=${{ env.BUILDER_BASE_IMAGE_REGISTRY_PATH }}
+            BUILDER_BUILDER_BASE_IMAGE=${{ matrix.builder-base-image }}
+            BUILDER_BUILDER_BASE_IMAGE_TAG=${{ matrix.builder-base-image-vsn }}
+            DEPLOY_ENV=${{ matrix.deploy-env }}
+            RUNNER_REGISTRY=${{ env.RUNNER_BASE_IMAGE_REGISTRY }}
+            RUNNER_REGISTRY_PATH=${{ env.RUNNER_BASE_IMAGE_REGISTRY_PATH }}
+            RUNNER_BUILDER_BASE_IMAGE=${{ matrix.runner-base-image }}
+            RUNNER_BUILDER_BASE_IMAGE_TAG=${{ matrix.runner-base-image-vsn }}

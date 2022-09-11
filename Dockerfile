@@ -1,27 +1,34 @@
 # Set args for image overrides
-ARG REGISTRY=docker.io
-ARG REGISTRY_PATH=library
-ARG BASE_IMAGE=alpine
+ARG BUILDER_REGISTRY=docker.io
+ARG BUILDER_REGISTRY_PATH=library
+ARG BUILDER_BASE_IMAGE=alpine
+ARG RUNNER_REGISTRY=$BUILDER_REGISTRY
+ARG RUNNER_REGISTRY_PATH=$BUILDER_REGISTRY_PATH
+ARG RUNNER_BASE_IMAGE=$BUILDER_BASE_IMAGE
 
 # # Set language-specific versioning
 # ARG ELIXIR_VERSION=1.14.0
-# ARG BASE_IMAGE_TAG=${ELIXIR_VERSION}-alpine
-ARG BASE_IMAGE_TAG=3.16.2
+# ARG BUILDER_BASE_IMAGE_TAG=${ELIXIR_VERSION}-alpine
+ARG BUILDER_BASE_IMAGE_TAG=3.16.2
+ARG RUNNER_BASE_IMAGE_TAG=$BUILDER_BASE_IMAGE_TAG
 
 # Set a base directory ARG for running the build of your app
 ARG APP_DIR=/opt/app
 
-# # Set an ARG for switching app build envs
+# Set an ARG for switching app build envs
+ARG BUILD_ENV=prod
+ARG DEPLOY_ENV=$BUILD_ENV
 # ARG MIX_ENV=prod
 # 
 # # Set any other args shared between build stages
 # ARG OTP_APP=elixir_dev
 
 # Build stage
-FROM ${REGISTRY}/${REGISTRY_PATH}/${BASE_IMAGE}:${BASE_IMAGE_TAG} AS builder
-# 
+FROM ${BUILDER_REGISTRY}/${BUILDER_REGISTRY_PATH}/${BUILDER_BASE_IMAGE}:${BUILDER_BASE_IMAGE_TAG} AS builder
+
 # # Import necessary ARGs defined at top level
 ARG APP_DIR
+ARG BUILD_ENV
 # ARG MIX_ENV
 # ARG ELIXIR_VERSION
 # 
@@ -61,10 +68,11 @@ WORKDIR $APP_DIR
 # 
 # Runner stage
 # Using the same image as the builder assures compatibility between [build|run]time
-FROM ${REGISTRY}/${REGISTRY_PATH}/${BASE_IMAGE}:${BASE_IMAGE_TAG}
+FROM ${RUNNER_REGISTRY}/${RUNNER_REGISTRY_PATH}/${RUNNER_BASE_IMAGE}:${RUNNER_BASE_IMAGE_TAG}
 
 # Import necessary ARGs defined at top level
 ARG APP_DIR
+ARG DEPLOY_ENV
 # ARG OTP_APP
 # ARG MIX_ENV
 # 
