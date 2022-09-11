@@ -32,7 +32,6 @@ docker run \
   -it \
   -v $(pwd):/workspace \
   -w /workspace \
-  --entrypoint sh
   -e OTP_APP \
   elixir:1.14.0-alpine \
   mix new --app $OTP_APP .
