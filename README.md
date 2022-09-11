@@ -11,14 +11,27 @@ Language-specific derivations of this repo:
 - Follow [the official instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template) on creating a new repo from a template.
 - Create a new project in the new repo's root directory and modify the template as needed
 
-### CLI
+### Examples
+
+In the following examples, `$MY_NEW_REPO_ACCESS_LEVEL` is either `--public` or `--private`
+
+Modification of a number of these template files is dependent on language choice.
+
+#### Elixir
 
 ```console
+MY_NEW_REPO=container-dev-elixir
+MY_NEW_REPO_ACCESS_LEVEL=--public
+OTP_APP=my_app
 gh repo create $MY_NEW_REPO $MY_NEW_REPO_ACCESS_LEVEL --template mwilsoncoding/container-dev
-```
-```console
 cd $MY_NEW_REPO
-```
-```console
-# Create your project and modify the extant template files as needed
+docker run \
+  --rm \
+  -it \
+  -v $(pwd):/workspace \
+  -w /workspace \
+  --entrypoint sh
+  -e OTP_APP \
+  elixir:1.14.0-alpine \
+  mix new --app $OTP_APP .
 ```
