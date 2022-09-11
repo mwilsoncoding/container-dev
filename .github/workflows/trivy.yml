@@ -33,7 +33,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          imagw-ref: |
+          image-ref: |
             ghcr.io/mwilsoncoding/container-dev/container-dev:${{ github.sha }}
           format: sarif
           output: trivy-results.sarif
