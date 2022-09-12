@@ -17,7 +17,6 @@ ARG APP_DIR=/opt/app
 
 # Set an ARG for switching app build envs
 ARG BUILD_ENV=prod
-ARG DEPLOY_ENV=$BUILD_ENV
 # ARG MIX_ENV=prod
 # 
 # # Set any other args shared between build stages
@@ -72,7 +71,7 @@ FROM ${RUNNER_REGISTRY}/${RUNNER_REGISTRY_PATH}/${RUNNER_BASE_IMAGE}:${RUNNER_BA
 
 # Import necessary ARGs defined at top level
 ARG APP_DIR
-ARG DEPLOY_ENV
+ARG BUILD_ENV
 # ARG OTP_APP
 # ARG MIX_ENV
 # 

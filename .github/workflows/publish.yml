@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deploy-env:
+        build-env:
           - prod
           #          - dev
           #          - test
@@ -108,12 +108,11 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/container-dev:${{ github.sha }}
           context: .
           build-args: |-
-            BUILD_ENV=${{ matrix.deploy-env }}
+            BUILD_ENV=${{ matrix.build-env }}
             BUILDER_REGISTRY=${{ env.BUILDER_BASE_IMAGE_REGISTRY }}
             BUILDER_REGISTRY_PATH=${{ env.BUILDER_BASE_IMAGE_REGISTRY_PATH }}
             BUILDER_BUILDER_BASE_IMAGE=${{ matrix.builder-base-image }}
             BUILDER_BUILDER_BASE_IMAGE_TAG=${{ matrix.builder-base-image-vsn }}
-            DEPLOY_ENV=${{ matrix.deploy-env }}
             RUNNER_REGISTRY=${{ env.RUNNER_BASE_IMAGE_REGISTRY }}
             RUNNER_REGISTRY_PATH=${{ env.RUNNER_BASE_IMAGE_REGISTRY_PATH }}
             RUNNER_BUILDER_BASE_IMAGE=${{ matrix.runner-base-image }}
