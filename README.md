@@ -36,3 +36,22 @@ docker run \
   elixir:1.14.0-alpine \
   mix new --app $OTP_APP .
 ```
+
+#### Java Maven
+
+```console
+MY_NEW_REPO=container-dev-java-maven
+MY_NEW_REPO_ACCESS_LEVEL=--public
+GROUP_ID=com.containerdevjava
+ARTIFACT_ID=containerdevjava
+VERSION=0.1.0
+gh repo create $MY_NEW_REPO $MY_NEW_REPO_ACCESS_LEVEL --template mwilsoncoding/container-dev
+cd $MY_NEW_REPO
+docker run \
+  --rm \
+  -it \
+  -v $(pwd):/workspace \
+  -w /workspace \
+  maven:3.8.6-eclipse-temurin-18-alpine \
+  mvn archetype:generate -DgroupId=$GROUP_ID -DartifactId=$ARTIFACT_ID -Dversion=$VERSION -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.4
+```
